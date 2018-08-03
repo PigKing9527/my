@@ -40,8 +40,7 @@ def one_book_url(bookurls):
     return one_bookurl
         #返回书籍章节链接
 
-def book_down(one_bookurl):
-    zao = time.time()
+def book_down(one_bookurl):    
     headers = {
                     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
                 }
@@ -61,14 +60,15 @@ def book_down(one_bookurl):
                 f.write(strs)
             #存入一章
         else:
-            print('请求失败: ' + i)
-    print(one_bookurl[-1][:-4] + ' 下载完成')
-    wan = time.time()
-    yongshi = str(wan - zao)
-    file = os.getcwd()
-    print('文件在:' + file)
-    print('用时: ' + yongshi[:5] + '秒')
+            print('请求失败: ' + i)    
+    print(one_bookurl[-1][:-4] + ' 下载完成' + '文件在:' + os.getcwd())
+
 
 def down(ranges):
+    zao = time.time()
     #ranges = int(input('输入玄幻屋的书号:'))
     book_down(one_book_url(books_url(ranges)))
+    wan = time.time()
+    print('\n用时: ' +  str(wan - zao)[:5] + '秒')
+
+  
