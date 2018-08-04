@@ -6,7 +6,7 @@ import time
 import os
 import sys
 import copy
-
+import threading
 
 def books_url(ranges):
     bookurls = []
@@ -41,7 +41,6 @@ def one_book_url(bookurls):
 
 
 def book_down(one_bookurl):
-    import threading
     #lock = threading.Lock()
     def get(url):
         #lock.acquire()
@@ -68,7 +67,7 @@ def book_down(one_bookurl):
         t.start()
     for t in ts:
         t.join()
-    #print(''.join([one_bookurl[-1][:-4],' 下载完成','文件在:',os.getcwd()]))
+    print(''.join([one_bookurl[-1][:-4],' 下载完成','文件在:',os.getcwd()]))
 
 
 def combination():
@@ -95,5 +94,6 @@ def down(ranges):
     print('\n用时: ' +  str((time.time() - t1))[:-13] + '秒')
     #ranges = int(input('输入玄幻屋的书号:'))
 
-    
+__name__=='__main__'    
+
 down(71)
