@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*- 
 import requests
 from bs4 import BeautifulSoup
 import re 
 import time
 import os
 import sys
+import copy
+
 
 def books_url(ranges):
     bookurls = []
@@ -12,6 +15,7 @@ def books_url(ranges):
         bookurl_one = ''.join([urls,str(i)]) 
         bookurls.append(bookurl_one)
     return bookurls
+
 
 def one_book_url(bookurls):
     one_bookurl = []
@@ -24,51 +28,72 @@ def one_book_url(bookurls):
             None
         else:
             print('请求失败: ' + bookurl)   
-            pass
         soup = BeautifulSoup(nover.text,"lxml")
-        bookname = soup.title.string
         patten = re.compile('<dd> <a style="" href="(.*?)">')
-        patten2 = re.compile('_(.*?)无弹窗_')
         #提取链接正则
         urls = re.findall(patten,nover.text)
-        bookname = re.findall(patten2,bookname)
-        #正则提取
-        string = ''.join([bookname[0],'.txt'])
+        bookname = soup.h1.text
+        string = ''.join([bookname,'.txt'])
         for i in urls:
             one_bookurl.append('https://www.xuanhuanwu.com' + i)
         one_bookurl.append(string)
     return one_bookurl
-        #返回书籍章节链接
 
-def book_down(one_bookurl):    
-    headers = {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
-                }
-    zhanngjie=str(len(one_bookurl)-1)
-    print(one_bookurl[-1][:-4] + ' : 共' +zhanngjie +  '章' + '正在下载...')
-    for i in one_bookurl[:-2]:    
-        one_paper = requests.get(i,headers = headers)
-        if one_paper.status_code == 200:
-            soup = BeautifulSoup(one_paper.text,'lxml')
-            title = soup.h1.string
+
+def book_down(one_bookurl):
+    import threading
+    #lock = threading.Lock()
+    def get(url):
+        #lock.acquire()
+        try:
+            time.sleep(5)
+            r = requests.get(url, allow_redirects=False, timeout=10)
+            soup = BeautifulSoup(r.text,'lxml')
             dd = str(soup.find_all(id = 'content'))
-            #粗剪正文
-            dd = '\n\n' + title + '\n\n' + dd[61:-47]
+            title = str(soup.h1.string)
+            dd = ''.join(['\n\n',title,'\n\n',dd[61:-47]])
             strs = re.sub('<br/><br/>', '\n', dd)
+            c=str(one_bookurl.index(url))
+            strs='\n\n' + 'QWESDFA' + c + 'RTYHH' + strs + 'SAFASDF' + '\n\n'
             #细剪正文
             with open(one_bookurl[-1],'a',encoding= 'utf-8')as f:
                 f.write(strs)
-            #存入一章
-        else:
-            print('请求失败: ' + i)    
-    print(one_bookurl[-1][:-4] + ' 下载完成' + '文件在:' + os.getcwd())
+        finally:
+            #lock.release()
+            r.ok
+            pass
+    print(u'多线程抓取')
+    ts = [threading.Thread(target=get, args=(url,)) for url in one_bookurl[:-2]]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    #print(''.join([one_bookurl[-1][:-4],' 下载完成','文件在:',os.getcwd()]))
 
 
+def combination():
+    import wkp #我自己写的模块
+    with open('C:\\ProgramData\\Anaconda3\\my_py\\六迹之梦魇宫.txt','rb')as f:
+        d = f.read().decode('utf-8')   
+    patther = re.compile('QWESDFA(.*?)RTYHH(.*?)SAFASDF',re.S)
+    strz = re.findall(patther,d)
+    list_number=[]
+    for i in range(len(strz)):
+        list_number.append(int(strz[i][0]))
+    list_new=copy.deepcopy(list_number)
+    list_number=wkp.mp(list_number) #冒泡排序
+    for i in range(len(strz)):
+        numberz=(list_new.index(list_number[i]))
+        with open('C:\\ProgramData\\Anaconda3\\六迹之梦魇宫.txt','a')as f:
+            f.write(strz[numberz][1])
+
+            
 def down(ranges):
-    zao = time.time()
-    #ranges = int(input('输入玄幻屋的书号:'))
+    t1 = time.time()
     book_down(one_book_url(books_url(ranges)))
-    wan = time.time()
-    print('\n用时: ' +  str(wan - zao)[:5] + '秒')
+    combination()
+    print('\n用时: ' +  str((time.time() - t1))[:-13] + '秒')
+    #ranges = int(input('输入玄幻屋的书号:'))
 
-  
+    
+down(71)
